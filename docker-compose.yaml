@@ -5,6 +5,23 @@
 # port: 9000
 
 services:
+  db:
+    image: postgres:17
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    hostname: postgresql
+    container_name: postgresql
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-sonar}
+      - POSTGRES_PASSWORD=${SERVICE_PASSWORD_DB}
+      - POSTGRES_DB=sonar
+    volumes:
+      - sonar_postgresql:/var/lib/postgresql
+      - sonar_postgresql_data:/var/lib/postgresql/data
+
   sonarqube:
     image: sonarqube:community
     hostname: sonarqube
@@ -23,23 +40,6 @@ services:
       - sonarqube_extensions:/opt/sonarqube/extensions
       - sonarqube_logs:/opt/sonarqube/logs
       - sonarqube_temp:/opt/sonarqube/temp
-
-  db:
-    image: postgres:17
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    hostname: postgresql
-    container_name: postgresql
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER:-sonar}
-      - POSTGRES_PASSWORD=${SERVICE_PASSWORD_DB}
-      - POSTGRES_DB=sonar
-    volumes:
-      - sonar_postgresql:/var/lib/postgresql
-      - sonar_postgresql_data:/var/lib/postgresql/data
 
 volumes:
   sonarqube_data:
