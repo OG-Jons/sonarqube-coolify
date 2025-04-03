@@ -23,11 +23,18 @@ services:
       - sonar_postgresql_data:/var/lib/postgresql/data
 
   sonarqube:
-    image: sonarqube:community
+    image: sonarqube:lts-community
     hostname: sonarqube
     container_name: sonarqube
     read_only: true
+    ulimits:
+      nproc: 131072
+      nofile:
+        soft: 8192
+        hard: 131072
     depends_on:
+      init:
+        condition: service_completed_successfully
       db:
         condition: service_healthy
     environment:
@@ -40,6 +47,13 @@ services:
       - sonarqube_extensions:/opt/sonarqube/extensions
       - sonarqube_logs:/opt/sonarqube/logs
       - sonarqube_temp:/opt/sonarqube/temp
+
+  init:
+    image: bash
+    privileged: true
+    user: root
+    entrypoint: ["/bin/sh", "-c"]
+    command: "sysctl -w vm.max_map_count=524288 && sysctl -w fs.file-max=131072"
 
 volumes:
   sonarqube_data:
